@@ -188,3 +188,6 @@ To enable automatic production database migrations when pushing to `main`:
    `Server=your-db-server.database.windows.net;Database=ProdDb;User Id=dbadmin;Password=YourPassword;Encrypt=True;`
 6. Click **Add secret**.
 
+Regarding our DbUp migration setup, should developers write SQL migration scripts manually, or would you prefer using an ORM (EF Core) to auto-generate the .sql files from code before deploying them via DbUp?
+
+Please let us know your preferred approach for managing schema changes.
