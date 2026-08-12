@@ -173,3 +173,19 @@ DbUp/
    - Create a test branch with a script containing `DROP TABLE [dbo].[Customers];`.
    - Commit, push, and open a Pull Request.
    - **Result**: The CI check will fail instantly on line matching, preventing destructive SQL from reaching `main`.
+
+---
+
+### Configuring Production Database Connection String in GitHub
+
+To enable automatic production database migrations when pushing to `main`:
+
+1. Open your GitHub Repository in your browser.
+2. Go to **Settings** ➔ **Secrets and variables** ➔ **Actions**.
+3. Click **New repository secret**.
+4. Set **Name**: `PROD_DB_CONNECTION_STRING`.
+5. Set **Value**: Your target database connection string, e.g.:
+   `Server=your-db-server.database.windows.net;Database=ProdDb;User Id=dbadmin;Password=YourPassword;Encrypt=True;`
+6. Click **Add secret**.
+
+Once added, whenever a PR is merged into `main`, GitHub Actions will automatically execute `deploy-to-production-db` to bring your target database up to date!

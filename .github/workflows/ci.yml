@@ -1,4 +1,4 @@
-name: Database Migration CI & Additive Policy Validation
+name: Database Migration CI/CD & Additive Policy Validation
 
 on:
   push:
@@ -19,8 +19,8 @@ jobs:
         run: |
           ./.github/scripts/validate-migrations.ps1 -ScriptsFolder "./scripts"
 
-  build-and-run:
-    name: Build & Test Migration Runner
+  test-migration-on-container:
+    name: Test Migration on SQL Container
     needs: validate-additive-migrations
     runs-on: ubuntu-latest
 
@@ -49,6 +49,38 @@ jobs:
       - name: Build Project
         run: dotnet build DbUp.csproj --configuration Release --no-restore
 
-      - name: Execute DbUp Migration Runner
+      - name: Execute DbUp Migration Runner (Container Test)
         run: |
           dotnet run --project DbUp.csproj --configuration Release -- "Server=127.0.0.1,1433;Database=DbUpTestDb;User Id=sa;Password=YourStrong!Password123;TrustServerCertificate=True;"
+
+  deploy-to-production-db:
+    name: Deploy Migrations to Target/Production Database
+    needs: [validate-additive-migrations, test-migration-on-container]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore Dependencies
+        run: dotnet restore DbUp.csproj
+
+      - name: Build Project
+        run: dotnet build DbUp.csproj --configuration Release --no-restore
+
+      - name: Execute DbUp Migration Runner against Production DB
+        env:
+          CONNECTION_STRING: ${{ secrets.PROD_DB_CONNECTION_STRING }}
+        run: |
+          if [ -z "$CONNECTION_STRING" ]; then
+            echo "Error: PROD_DB_CONNECTION_STRING secret is not set in GitHub repository settings!"
+            echo "Please add PROD_DB_CONNECTION_STRING under Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+          dotnet run --project DbUp.csproj --configuration Release -- "$CONNECTION_STRING"
