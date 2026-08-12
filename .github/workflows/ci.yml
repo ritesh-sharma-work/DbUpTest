@@ -53,9 +53,42 @@ jobs:
         run: |
           dotnet run --project DbUp.csproj --configuration Release -- "Server=127.0.0.1,1433;Database=DbUpTestDb;User Id=sa;Password=YourStrong!Password123;TrustServerCertificate=True;"
 
+  precheck-target-db-connection:
+    name: Pre-Check Target Database Connection
+    needs: [validate-additive-migrations, test-migration-on-container]
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore Dependencies
+        run: dotnet restore DbUp.csproj
+
+      - name: Build Project
+        run: dotnet build DbUp.csproj --configuration Release --no-restore
+
+      - name: Verify Target DB Connection Credentials
+        env:
+          CONNECTION_STRING: ${{ secrets.PROD_DB_CONNECTION_STRING }}
+        run: |
+          if [ -z "$CONNECTION_STRING" ]; then
+            echo "Error: PROD_DB_CONNECTION_STRING secret is missing in GitHub repository settings!"
+            echo "Please configure PROD_DB_CONNECTION_STRING under Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+          dotnet run --project DbUp.csproj --configuration Release -- "$CONNECTION_STRING" --check-connection-only
+
   deploy-to-production-db:
     name: Deploy Migrations to Target Database
     needs: [validate-additive-migrations, test-migration-on-container]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
