@@ -1,0 +1,7 @@
+# Visual Studio & .NET Build Artifacts
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userossc

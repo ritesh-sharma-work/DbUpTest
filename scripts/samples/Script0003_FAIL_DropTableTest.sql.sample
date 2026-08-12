@@ -1,0 +1,15 @@
+-- Script0003_FAIL_DropTableTest.sql.sample
+-- THIS SCRIPT IS FOR DEMO / CI TESTING ONLY
+-- It violates the Additive-Only Migration Strategy policy.
+
+-- Restricted Operation 1: DROP TABLE
+DROP TABLE [dbo].[Customers];
+GO
+
+-- Restricted Operation 2: DROP COLUMN
+ALTER TABLE [dbo].[Customers] DROP COLUMN [PhoneNumber];
+GO
+
+-- Restricted Operation 3: DROP PROCEDURE
+DROP PROCEDURE [dbo].[usp_GetCustomerByEmail];
+GO
