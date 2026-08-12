@@ -188,4 +188,3 @@ To enable automatic production database migrations when pushing to `main`:
    `Server=your-db-server.database.windows.net;Database=ProdDb;User Id=dbadmin;Password=YourPassword;Encrypt=True;`
 6. Click **Add secret**.
 
-Once added, whenever a PR is merged into `main`, GitHub Actions will automatically execute `deploy-to-production-db` to bring your target database up to date!
