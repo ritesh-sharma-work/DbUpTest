@@ -56,6 +56,7 @@ jobs:
   deploy-to-production-db:
     name: Deploy Migrations to Target Database
     needs: [validate-additive-migrations, test-migration-on-container]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
